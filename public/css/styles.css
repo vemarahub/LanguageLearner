@@ -1,0 +1,41 @@
+/* Custom styles for chat bubbles */
+.chat-box {
+  scroll-behavior: smooth;
+}
+
+/* User message bubble (right) */
+.message.user {
+  position: relative;
+  margin-left: auto;
+}
+
+/* Assistant message bubble (left) */
+.message.assistant {
+  position: relative;
+  margin-right: auto;
+}
+
+/* Add a small arrow to chat bubbles */
+.message.user::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 10px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 8px solid #4f46e5; /* Matches bg-indigo-500 */
+}
+
+.message.assistant::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 10px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid #e5e7eb; /* Matches bg-gray-200 */
+}
