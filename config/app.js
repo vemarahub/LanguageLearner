@@ -41,6 +41,10 @@ module.exports = {
     | below value to true.
     |
     */
+
+    port: Env.get('PORT', 3333), // Use PORT from environment, default to 3333
+    host: '0.0.0.0', // Bind to all network interfaces
+
     allowMethodSpoofing: true,
 
     /*
