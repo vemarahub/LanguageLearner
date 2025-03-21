@@ -81,7 +81,7 @@ const ChatsController = {
 
 // Function to call Hugging Face Inference API for AI response
 async function generateAIResponse(message) {
-  const API_TOKEN = 'test'; // Replace with your token
+  const API_TOKEN = process.env.HUGGINGFACE_API_TOKEN; // Replace with your token
   const model = 'facebook/blenderbot-400M-distill';
 
   try {
