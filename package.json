@@ -28,7 +28,8 @@
     "@adonisjs/shield": "^1.0.8",
     "@adonisjs/view": "^6.2.0",
     "axios": "^1.8.4",
-    "bing-translate-api": "^4.0.2"
+    "bing-translate-api": "^4.0.2",
+    "gtts": "^0.2.1"
   },
   "autoload": {
     "App": "./app"

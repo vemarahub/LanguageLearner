@@ -1,91 +1,99 @@
-async function sendMessage() {
-  const nativeLang = document.getElementById('nativeLang').value;
-  const targetLang = document.getElementById('targetLang').value;
-  const userInput = document.getElementById('userInput').value;
-  const sendButton = document.getElementById('sendButton');
-
-  if (!userInput) return;
-
-  // Disable the send button and show loading state
-  sendButton.disabled = true;
-  sendButton.textContent = 'Sending...';
-
-  // Display user's message
-  const chatBox = document.getElementById('chatBox');
-  chatBox.innerHTML += `
-    <div class="flex justify-end">
-      <div class="max-w-xs bg-indigo-500 text-white rounded-lg p-3 shadow-md message user">
-        ${userInput}
-      </div>
-    </div>
-  `;
-  chatBox.scrollTop = chatBox.scrollHeight;
-
-  // Clear input
-  document.getElementById('userInput').value = '';
-
-  // Send message to backend
-  try {
-    const response = await fetch('/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: userInput, nativeLang, targetLang })
-    });
-    const data = await response.json();
-
-    if (data.error) {
-      chatBox.innerHTML += `
-        <div class="flex justify-start">
-          <div class="max-w-xs bg-gray-200 text-gray-800 rounded-lg p-3 shadow-md message assistant">
-            Error: ${data.error}
-          </div>
-        </div>
-      `;
-    } else {
-      // Display assistant's response in both languages
-      chatBox.innerHTML += `
-        <div class="flex justify-start">
-          <div class="max-w-xs bg-gray-200 text-gray-800 rounded-lg p-3 shadow-md message assistant">
-            <p><strong>Native:</strong> ${data.native}</p>
-            <p><strong>Target:</strong> ${data.target}</p>
-          </div>
-        </div>
-      `;
-    }
-    chatBox.scrollTop = chatBox.scrollHeight;
-  } catch (error) {
-    chatBox.innerHTML += `
-      <div class="flex justify-start">
-        <div class="max-w-xs bg-gray-200 text-gray-800 rounded-lg p-3 shadow-md message assistant">
-        Error: ${error.message}
-      </div>
-    </div>
-    `;
-    chatBox.scrollTop = chatBox.scrollHeight;
-  } finally {
-    // Re-enable the send button
-    sendButton.disabled = false;
-    sendButton.textContent = 'Send';
-  }
-}
-
-// Wait for the DOM to be fully loaded before attaching event listeners
 document.addEventListener('DOMContentLoaded', () => {
-  // Attach event listener for the Send button
+  const chatBox = document.getElementById('chatBox');
+  const userInput = document.getElementById('userInput');
   const sendButton = document.getElementById('sendButton');
-  if (sendButton) {
-    sendButton.addEventListener('click', sendMessage);
-  } else {
-    console.error('Send button not found');
+  const nativeLangSelect = document.getElementById('nativeLang');
+  const targetLangSelect = document.getElementById('targetLang');
+  const chitChatToggle = document.getElementById('chitChatToggle');
+
+  // Function to render the chat history
+  function renderChatHistory(history) {
+    chatBox.innerHTML = '';
+    if (!history || history.length === 0) {
+      chatBox.innerHTML = '<p class="text-center text-gray-500">No messages yet.</p>';
+      return;
+    }
+
+    history.forEach(message => {
+      if (message.role === 'user') {
+        // User message (right-aligned)
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.className = 'flex justify-end';
+        userMessageDiv.innerHTML = `
+          <div class="max-w-xs bg-indigo-500 text-white rounded-lg p-3 shadow-md">
+            <p>${message.content.native}</p>
+            ${message.content.target ? `<p><strong>Target:</strong> ${message.content.target}</p>` : ''}
+          </div>
+        `;
+        chatBox.appendChild(userMessageDiv);
+      } else {
+        // Assistant message (left-aligned)
+        const assistantMessageDiv = document.createElement('div');
+        assistantMessageDiv.className = 'flex justify-start';
+        assistantMessageDiv.innerHTML = `
+          <div class="max-w-xs bg-gray-200 text-gray-800 rounded-lg p-3 shadow-md">
+            <p><strong>Native:</strong> ${message.content.native}</p>
+            <p><strong>Target:</strong> ${message.content.target}</p>
+          </div>
+        `;
+        chatBox.appendChild(assistantMessageDiv);
+      }
+    });
+
+    // Scroll to the bottom of the chat box
+    chatBox.scrollTop = chatBox.scrollHeight;
   }
 
-  // Attach event listener for the Enter key
-  const userInput = document.getElementById('userInput');
-  if (userInput) {
-    userInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendMessage();
-    });
-  } else {
-    console.error('User input field not found');
+  // Function to send a message
+  async function sendMessage() {
+    const message = userInput.value.trim();
+    if (!message) return;
+
+    const nativeLang = nativeLangSelect.value;
+    const targetLang = targetLangSelect.value;
+    const chitChatEnabled = chitChatToggle.checked;
+
+    try {
+      const response = await fetch('/chat/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          nativeLang,
+          targetLang,
+          chitChatEnabled,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      const data = await response.json();
+      renderChatHistory(data.history);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Error sending message: ' + error.message);
+    }
+
+    // Clear the input field
+    userInput.value = '';
   }
+
+  // Event listeners
+  sendButton.addEventListener('click', sendMessage);
+  userInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  });
+
+  // Persist toggle state in localStorage
+  chitChatToggle.checked = localStorage.getItem('chitChatEnabled') === 'true' || true;
+  chitChatToggle.addEventListener('change', () => {
+    localStorage.setItem('chitChatEnabled', chitChatToggle.checked);
+  });
 });
