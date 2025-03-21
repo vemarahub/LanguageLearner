@@ -1,5 +1,6 @@
 const { translate } = require('bing-translate-api');
 const axios = require('axios');
+const Env = use('Env');
 
 // In-memory conversation history (replace with a database for production)
 let conversationHistory = [];
@@ -81,7 +82,7 @@ const ChatsController = {
 
 // Function to call Hugging Face Inference API for AI response
 async function generateAIResponse(message) {
-  const API_TOKEN = process.env.HUGGINGFACE_API_TOKEN; // Replace with your token
+  const API_TOKEN = Env.get('HUGGINGFACE_API_TOKEN'); // Replace with your token
   const model = 'facebook/blenderbot-400M-distill';
 
   try {
